@@ -1,20 +1,21 @@
 import styles from '../../styles/coffee-store.module.css';
-import COFFEE_STORES_DUMMY_DATA from "../../dummy-data/coffee-stores-dummy-data";
 import {useRouter} from "next/router";
 import Link from "next/link";
 import Head from "next/head";
 import Image from "next/image";
 import cls from "classnames";
+import {fetchCoffeeShops} from "../../../utils/foursquare-utils";
 
 
 /**
  * gets called at build time and lets you specify which dynamic routes to pre-render based on data.
  * @returns {{paths: *, fallback: boolean}}
  */
-export const getStaticPaths = () => {
-    const paths = COFFEE_STORES_DUMMY_DATA.map(coffeeStore => {
+export const getStaticPaths = async () => {
+    const coffeeStores = await fetchCoffeeShops();
+    const paths = coffeeStores.map(coffeeStore => {
         return {
-            params: {id: coffeeStore.id.toString()}
+            params: {id: coffeeStore.fsq_id}
         }
     });
     return {
@@ -30,11 +31,12 @@ export const getStaticPaths = () => {
  * @param params
  * @returns {{props: {coffeeStores: *}}}
  */
-export const getStaticProps = ({params}) => {
+export const getStaticProps = async ({params}) => {
     const {id} = params;
+    const coffeeStores = await fetchCoffeeShops();
     return {
         props: {
-            coffeeStores: COFFEE_STORES_DUMMY_DATA.find(coffeeStore => coffeeStore.id.toString() === id)
+            coffeeStores: coffeeStores.find(coffeeStore => coffeeStore.fsq_id === id)
         }
     }
 };
@@ -48,7 +50,7 @@ const CoffeeStore = (staticProps) => {
     if (!staticProps.coffeeStores) {
         return <h1>Loading...</h1>
     }
-    const {id, name, imgUrl, address} = staticProps.coffeeStores; // staticProps destructured
+    const {name, imgUrl, location} = staticProps.coffeeStores; // staticProps destructured
 
 
     // *************************** FUNCTIONS *************************** //
@@ -85,13 +87,13 @@ const CoffeeStore = (staticProps) => {
                     {/*locality*/}
                     <div className={styles.iconWrapper}>
                         <Image src='/icons/places.svg' alt='places icon' width={24} height={24}/>
-                        <p className={styles.text}>Denver</p>
+                        <p className={styles.text}>{location.formatted_address}</p>
                     </div>
 
                     {/*address*/}
                     <div className={styles.iconWrapper}>
                         <Image src='/icons/nearMe.svg' alt='near me icon' width={24} height={24}/>
-                        <p className={styles.text}>{address}</p>
+                        <p className={styles.text}>{location.locality}</p>
                     </div>
 
                     {/*rating*/}

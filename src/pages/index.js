@@ -2,23 +2,23 @@ import styles from '../styles/Home.module.css'
 import Head from 'next/head'
 import Banner from "@/components/banner/Banner";
 import Image from "next/image";
-import COFFEE_STORES_DUMMY_DATA from "../dummy-data/coffee-stores-dummy-data";
 import Card from "@/components/card/Card";
+import {fetchCoffeeShops} from "../../utils/foursquare-utils";
 
 
 
 /**
- * This function is used to fetch the coffee shops from the API
+ * This function is used to fetch the coffee shops from the Foursquare API and pre-render the page
  * @returns {Promise<{props: {coffeeShops: {}}}>}
  */
 export const getStaticProps = async () => {
+    const coffeeShops = await fetchCoffeeShops();
     return {
         props: {
-            coffeeShops: COFFEE_STORES_DUMMY_DATA
+            coffeeShops: coffeeShops
         }
-    }
+    };
 };
-
 
 
 const Home = (staticProps) => {
@@ -48,15 +48,15 @@ const Home = (staticProps) => {
                         <>
                             <h2 className={styles.heading2}>Denver Coffee Shops</h2>
                             <div className={styles.cardLayout}>
-                                {/*mapping over the coffee shops - coming from the dummy data*/}
+                                {/*mapping over the coffee shops*/}
                                 {
                                     coffeeShops.map(coffeeShop => {
-                                        const {id, name, imgUrl} = coffeeShop;
+                                        const {fsq_id, name, imgUrl} = coffeeShop;
                                         return (
                                             <Card
-                                                key={id}
+                                                key={fsq_id}
                                                 name={name}
-                                                href={`/coffee-store/${id}`}
+                                                href={`/coffee-store/${fsq_id}`}
                                                 imgUrl={imgUrl ? imgUrl : '/static/generic-coffee.jpg'}
                                             />
                                         );
