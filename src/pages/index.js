@@ -2,9 +2,27 @@ import styles from '../styles/Home.module.css'
 import Head from 'next/head'
 import Banner from "@/components/banner/Banner";
 import Image from "next/image";
+import COFFEE_STORES_DUMMY_DATA from "../dummy-data/coffee-stores-dummy-data";
+import Card from "@/components/card/Card";
 
 
-const Home = () => {
+
+/**
+ * This function is used to fetch the coffee shops from the API
+ * @returns {Promise<{props: {coffeeShops: {}}}>}
+ */
+export const getStaticProps = async () => {
+    return {
+        props: {
+            coffeeShops: COFFEE_STORES_DUMMY_DATA
+        }
+    }
+};
+
+
+
+const Home = (staticProps) => {
+    const {coffeeShops} = staticProps;
 
     // *************************** FUNCTIONS *************************** //
     const onBannerButtonClick = () => {
@@ -24,6 +42,32 @@ const Home = () => {
             <main className={styles.main}>
                 <Banner buttonText='View your local coffee shops' onClickHandler={onBannerButtonClick}/>
                 <Image src='/static/hero-image.png' alt='hero image' width={700} height={400}/>
+                {/*logic displaying if there are coffee shops*/}
+                {
+                    coffeeShops.length > 0 && (
+                        <>
+                            <h2 className={styles.heading2}>Denver Coffee Shops</h2>
+                            <div className={styles.cardLayout}>
+                                {/*mapping over the coffee shops - coming from the dummy data*/}
+                                {
+                                    coffeeShops.map(coffeeShop => {
+                                        const {id, name, imgUrl} = coffeeShop;
+                                        return (
+                                            <Card
+                                                key={id}
+                                                name={name}
+                                                href={`/coffee-store/${id}`}
+                                                imgUrl={imgUrl ? imgUrl : '/static/generic-coffee.jpg'}
+                                            />
+                                        );
+                                    })
+                                }
+                                {/*end of coffee shops mapping*/}
+                            </div>
+                        </>
+                    )
+                }
+                {/*end of logic displaying if there are coffee shops*/}
             </main>
         </>
     )
