@@ -6,13 +6,13 @@ import Card from "@/components/card/Card";
 import {fetchCoffeeShops} from "../../utils/foursquare-utils";
 
 
-
 /**
  * This function is used to fetch the coffee shops from the Foursquare API and pre-render the page
  * @returns {Promise<{props: {coffeeShops: {}}}>}
  */
 export const getStaticProps = async () => {
     const coffeeShops = await fetchCoffeeShops();
+
     return {
         props: {
             coffeeShops: coffeeShops
@@ -24,7 +24,7 @@ export const getStaticProps = async () => {
 const Home = (staticProps) => {
     const {coffeeShops} = staticProps;
 
-    // *************************** FUNCTIONS *************************** //
+
     const onBannerButtonClick = () => {
         console.log('Banner button clicked');
     }
@@ -51,12 +51,12 @@ const Home = (staticProps) => {
                                 {/*mapping over the coffee shops*/}
                                 {
                                     coffeeShops.map(coffeeShop => {
-                                        const {fsq_id, name, imgUrl} = coffeeShop;
+                                        const {id, name, imgUrl} = coffeeShop;
                                         return (
                                             <Card
-                                                key={fsq_id}
+                                                key={id}
                                                 name={name}
-                                                href={`/coffee-store/${fsq_id}`}
+                                                href={`/coffee-store/${id}`}
                                                 imgUrl={imgUrl ? imgUrl : '/static/generic-coffee.jpg'}
                                             />
                                         );

@@ -7,6 +7,7 @@ import cls from "classnames";
 import {fetchCoffeeShops} from "../../../utils/foursquare-utils";
 
 
+
 /**
  * gets called at build time and lets you specify which dynamic routes to pre-render based on data.
  * @returns {{paths: *, fallback: boolean}}
@@ -15,7 +16,7 @@ export const getStaticPaths = async () => {
     const coffeeStores = await fetchCoffeeShops();
     const paths = coffeeStores.map(coffeeStore => {
         return {
-            params: {id: coffeeStore.fsq_id}
+            params: {id: coffeeStore.id}
         }
     });
     return {
@@ -32,14 +33,17 @@ export const getStaticPaths = async () => {
  * @returns {{props: {coffeeStores: *}}}
  */
 export const getStaticProps = async ({params}) => {
+    console.log('params: ', params)
     const {id} = params;
     const coffeeStores = await fetchCoffeeShops();
+
     return {
         props: {
-            coffeeStores: coffeeStores.find(coffeeStore => coffeeStore.fsq_id === id)
+            coffeeStores: coffeeStores.find(coffeeStore => coffeeStore.id.toString() === id)
         }
     }
 };
+
 
 
 const CoffeeStore = (staticProps) => {
@@ -50,14 +54,12 @@ const CoffeeStore = (staticProps) => {
     if (!staticProps.coffeeStores) {
         return <h1>Loading...</h1>
     }
-    const {name, imgUrl, location} = staticProps.coffeeStores; // staticProps destructured
+    const {name, imgUrl, address, city} = staticProps.coffeeStores; // staticProps destructured
 
 
-    // *************************** FUNCTIONS *************************** //
     const handleUpVoteButton = () => {
         console.log('up vote button clicked');
     };
-
 
 
     // *************************** JSX *************************** //
@@ -70,11 +72,11 @@ const CoffeeStore = (staticProps) => {
                 <div className={styles.col1}>
                     <div className={styles.backToHomeLink}>
                         <div>
-                            <Link href='/'>Back To Home</Link>
+                            <Link href='/'>← Back To Home</Link>
                         </div>
                     </div>
                     <div className={styles.nameWrapper}>
-                        <p>{name}</p>
+                        <h1 className={styles.name}>{name}</h1>
                     </div>
                     <Image className={styles.storeImg}
                            src={imgUrl ? imgUrl : '/static/generic-coffee.jpg'}
@@ -84,16 +86,16 @@ const CoffeeStore = (staticProps) => {
                     />
                 </div>
                 <div className={cls('glass', styles.col2)}>
-                    {/*locality*/}
-                    <div className={styles.iconWrapper}>
-                        <Image src='/icons/places.svg' alt='places icon' width={24} height={24}/>
-                        <p className={styles.text}>{location.formatted_address}</p>
-                    </div>
-
                     {/*address*/}
                     <div className={styles.iconWrapper}>
+                        <Image src='/icons/places.svg' alt='places icon' width={24} height={24}/>
+                        <p className={styles.text}>{address}</p>
+                    </div>
+
+                    {/*city*/}
+                    <div className={styles.iconWrapper}>
                         <Image src='/icons/nearMe.svg' alt='near me icon' width={24} height={24}/>
-                        <p className={styles.text}>{location.locality}</p>
+                        <p className={styles.text}>{city}</p>
                     </div>
 
                     {/*rating*/}
