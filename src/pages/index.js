@@ -4,6 +4,7 @@ import Banner from "@/components/banner/Banner";
 import Image from "next/image";
 import Card from "@/components/card/Card";
 import {fetchCoffeeShops} from "../../utils/foursquare-utils";
+import FindGeoLocation from "../../utils/geoLocation";
 
 
 /**
@@ -23,11 +24,13 @@ export const getStaticProps = async () => {
 
 const Home = (staticProps) => {
     const {coffeeShops} = staticProps;
+    const {getUsersLocation, latLong, locationErrorMsg, locatingUser} = FindGeoLocation();
 
 
-    const onBannerButtonClick = () => {
-        console.log('Banner button clicked');
+    const onViewLocalStoresButtonClick = () => {
+        getUsersLocation();
     }
+    console.log(latLong)
 
 
     // *************************** JSX *************************** //
@@ -40,12 +43,25 @@ const Home = (staticProps) => {
                 <link rel="icon" href="/favicon.ico"/>
             </Head>
             <main className={styles.main}>
-                <Banner buttonText='View your local coffee shops' onClickHandler={onBannerButtonClick}/>
+                <Banner
+                    buttonText={locatingUser ? 'Finding your location' : 'View your local coffee shops'}
+                    onClickHandler={onViewLocalStoresButtonClick}
+                />
+
+                {/*logic to display the location error message*/}
+                {
+                    locationErrorMsg && (
+                        <p>Error: {locationErrorMsg}</p>
+                    )
+                }
+                {/*end of logic to display the location error message*/}
+
                 <Image src='/static/hero-image.png' alt='hero image' width={700} height={400}/>
-                {/*logic displaying if there are coffee shops*/}
+
+                {/*logic displaying if there are coffee shops in DENVER*/}
                 {
                     coffeeShops.length > 0 && (
-                        <>
+                        <div className={styles.sectionWrapper}>
                             <h2 className={styles.heading2}>Denver Coffee Shops</h2>
                             <div className={styles.cardLayout}>
                                 {/*mapping over the coffee shops*/}
@@ -64,7 +80,7 @@ const Home = (staticProps) => {
                                 }
                                 {/*end of coffee shops mapping*/}
                             </div>
-                        </>
+                        </div>
                     )
                 }
                 {/*end of logic displaying if there are coffee shops*/}
