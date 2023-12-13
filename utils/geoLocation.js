@@ -1,16 +1,23 @@
-import {useState} from "react";
+import {useContext, useState} from "react";
+import {ACTION_TYPES} from "../reducers/coffee-store-reducer";
+import {CoffeeStoreContext} from "../contexts/coffee-store-context";
 
 
 const FindGeoLocation = () => {
     const [locationErrorMsg, setLocationErrorMsg] = useState('');
-    const [latLong, setLatLong] = useState('');
+    const {dispatch} = useContext(CoffeeStoreContext)
     const [locatingUser, setLocatingUser] = useState(false);
 
 
     const success = (position) => {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
-        setLatLong(`${latitude},${longitude}`);
+        dispatch(
+            {
+                type: ACTION_TYPES.SET_LAT_LONG,
+                payload: {latLong: `${latitude},${longitude}`}
+            }
+        );
         setLocationErrorMsg('')
         setLocatingUser(false);
     }
@@ -31,7 +38,7 @@ const FindGeoLocation = () => {
         }
     };
 
-    return {locationErrorMsg, latLong, locatingUser, getUsersLocation};
+    return {locationErrorMsg, locatingUser, setLocationErrorMsg, getUsersLocation};
 };
 
 export default FindGeoLocation;

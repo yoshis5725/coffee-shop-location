@@ -5,6 +5,9 @@ import Head from "next/head";
 import Image from "next/image";
 import cls from "classnames";
 import {fetchCoffeeShops} from "../../../utils/foursquare-utils";
+import {CoffeeStoreContext} from "../../../contexts/coffee-store-context";
+import {useContext, useEffect, useState} from "react";
+import {isEmpty} from "../../../utils/helpers";
 
 
 
@@ -13,15 +16,15 @@ import {fetchCoffeeShops} from "../../../utils/foursquare-utils";
  * @returns {{paths: *, fallback: boolean}}
  */
 export const getStaticPaths = async () => {
-    const coffeeStores = await fetchCoffeeShops();
-    const paths = coffeeStores.map(coffeeStore => {
+    const denverCoffeeStores = await fetchCoffeeShops();
+    const denverPaths = denverCoffeeStores.map(coffeeStore => {
         return {
             params: {id: coffeeStore.id}
         }
     });
     return {
-        paths,
-        fallback: false
+        paths: denverPaths,
+        fallback: true
     };
 };
 
@@ -33,13 +36,13 @@ export const getStaticPaths = async () => {
  * @returns {{props: {coffeeStores: *}}}
  */
 export const getStaticProps = async ({params}) => {
-    console.log('params: ', params)
     const {id} = params;
-    const coffeeStores = await fetchCoffeeShops();
+    const denverCoffeeStores = await fetchCoffeeShops();
+    const findDenverCoffeeStore = denverCoffeeStores.find(coffeeStore => coffeeStore.id.toString() === id);
 
     return {
         props: {
-            coffeeStores: coffeeStores.find(coffeeStore => coffeeStore.id.toString() === id)
+            coffeeStores: findDenverCoffeeStore ? findDenverCoffeeStore : {}
         }
     }
 };
@@ -49,12 +52,29 @@ export const getStaticProps = async ({params}) => {
 const CoffeeStore = (staticProps) => {
     const router = useRouter();
     const routerId = router.query.id;
+    const {state: {localCoffeeStores}} = useContext(CoffeeStoreContext); // context destructured
+    const [localAreaCoffeeStores, setLocalAreaCoffeeStores] = useState(staticProps.coffeeStores);
+
+
+    // this is for when the page is refreshed and the route is not yet generated (routerId is undefined) - this will
+    // set the localAreaCoffeeStores to the localCoffeeStores from context (which is an array of coffee stores) and
+    // then find the coffee store that matches the routerId and set that to localAreaCoffeeStores (which is an object)
+    // so that the page can render the coffee store info
+    useEffect(() => {
+        if (isEmpty(staticProps.coffeeStores)) {
+            if (localCoffeeStores.length > 0) {
+                const findLocalCoffeeStore = localCoffeeStores.find(coffeeStore => coffeeStore.id.toString() === routerId);
+                setLocalAreaCoffeeStores(findLocalCoffeeStore);
+            }
+        }
+    }, [localCoffeeStores, routerId, staticProps.coffeeStores]);
+
 
     // if route is not yet generated, show loading
     if (!staticProps.coffeeStores) {
         return <h1>Loading...</h1>
     }
-    const {name, imgUrl, address, city} = staticProps.coffeeStores; // staticProps destructured
+    const {name, imgUrl, address, city} = localAreaCoffeeStores;
 
 
     const handleUpVoteButton = () => {

@@ -27,7 +27,7 @@ const getCoffeeShopImageUrl = async () => {
  * This function is used to fetch the coffee shops from the Foursquare API
  * @returns {Promise<*>}
  */
-export const fetchCoffeeShops = async () => {
+export const fetchCoffeeShops = async (latLong='39.7392,-104.9903') => {
     const options = {
         method: 'GET',
         headers: {
@@ -36,7 +36,7 @@ export const fetchCoffeeShops = async () => {
         }
     };
 
-    const response = await fetch(getFourSquareUrl('coffee shop', '39.7392,-104.9903', 6), options)
+    const response = await fetch(getFourSquareUrl('coffee shop', latLong, 6), options)
     const data = await response.json();
     const photos = await getCoffeeShopImageUrl();
 

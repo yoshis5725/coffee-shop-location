@@ -5,6 +5,9 @@ import Image from "next/image";
 import Card from "@/components/card/Card";
 import {fetchCoffeeShops} from "../../utils/foursquare-utils";
 import FindGeoLocation from "../../utils/geoLocation";
+import {useContext, useEffect} from "react";
+import {CoffeeStoreContext} from "../../contexts/coffee-store-context";
+import {ACTION_TYPES} from "../../reducers/coffee-store-reducer";
 
 
 /**
@@ -24,13 +27,36 @@ export const getStaticProps = async () => {
 
 const Home = (staticProps) => {
     const {coffeeShops} = staticProps;
-    const {getUsersLocation, latLong, locationErrorMsg, locatingUser} = FindGeoLocation();
+    const {dispatch, state} = useContext(CoffeeStoreContext);
+    const {localCoffeeStores, latLong} = state;
+    const {getUsersLocation, locationErrorMsg, locatingUser, setLocationErrorMsg} = FindGeoLocation();
+
+
+    // retrieving the users location on page load and setting the latLong state variable to the users location coordinates
+    // this will trigger a re-render of the page and the useEffect hook will be called to fetch the local coffee shops
+    useEffect(() => {
+        if (latLong) {
+            try {
+                const fetchCoffeeShopsFromApi = async () => {
+                    const localCoffeeShops = await fetchCoffeeShops(latLong);
+                    dispatch(
+                        {
+                            type: ACTION_TYPES.SET_COFFEE_STORE,
+                            payload: {localCoffeeStores: localCoffeeShops}
+                        }
+                    );
+                };
+                fetchCoffeeShopsFromApi();
+            } catch (error) {
+                setLocationErrorMsg(error.message);
+            }
+        }
+    }, [dispatch, latLong, setLocationErrorMsg]);
 
 
     const onViewLocalStoresButtonClick = () => {
         getUsersLocation();
-    }
-    console.log(latLong)
+    };
 
 
     // *************************** JSX *************************** //
@@ -58,6 +84,33 @@ const Home = (staticProps) => {
 
                 <Image src='/static/hero-image.png' alt='hero image' width={700} height={400}/>
 
+                {/*logic displaying if there are coffee shops in the LOCAL AREA*/}
+                {
+                    localCoffeeStores.length > 0 && (
+                        <div className={styles.sectionWrapper}>
+                            <h2 className={styles.heading2}>Local Area Coffee Shops</h2>
+                            <div className={styles.cardLayout}>
+                                {/*mapping over the coffee shops*/}
+                                {
+                                    localCoffeeStores.map(coffeeShop => {
+                                        const {id, name, imgUrl} = coffeeShop;
+                                        return (
+                                            <Card
+                                                key={id}
+                                                name={name}
+                                                href={`/coffee-store/${id}`}
+                                                imgUrl={imgUrl ? imgUrl : '/static/generic-coffee.jpg'}
+                                            />
+                                        );
+                                    })
+                                }
+                                {/*end of coffee shops mapping*/}
+                            </div>
+                        </div>
+                    )
+                }
+                {/*end of logic displaying if there are coffee shops in the LOCAL AREA*/}
+
                 {/*logic displaying if there are coffee shops in DENVER*/}
                 {
                     coffeeShops.length > 0 && (
@@ -83,7 +136,7 @@ const Home = (staticProps) => {
                         </div>
                     )
                 }
-                {/*end of logic displaying if there are coffee shops*/}
+                {/*end of logic displaying if there are coffee shops in DENVER*/}
             </main>
         </>
     )
