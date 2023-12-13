@@ -38,11 +38,12 @@ const Home = (staticProps) => {
         if (latLong) {
             try {
                 const fetchCoffeeShopsFromApi = async () => {
-                    const localCoffeeShops = await fetchCoffeeShops(latLong);
+                    const localCoffeeShops = await fetch(`http://localhost:3000/api/getCoffeeStores?latLong=${latLong}`);
+                    const localCoffeeShopsJson = await localCoffeeShops.json();
                     dispatch(
                         {
                             type: ACTION_TYPES.SET_COFFEE_STORE,
-                            payload: {localCoffeeStores: localCoffeeShops}
+                            payload: {localCoffeeStores: localCoffeeShopsJson}
                         }
                     );
                 };
